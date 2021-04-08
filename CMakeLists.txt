@@ -79,6 +79,16 @@ if(GIT_FOUND)
     )
 endif()
 
+
+########################
+# Sanitizers
+########################
+if(DEPTHAI_SANITIZE)
+    set(SANITIZE_ADDRESS ON CACHE BOOL "Enable AddressSanitizer for sanitized targets." FORCE)
+    set(SANITIZE_UNDEFINED ON CACHE BOOL "Enable UndefinedBehaviorSanitizer for sanitized targets." FORCE)
+endif()
+find_package(Sanitizers)
+
 ### Get and find dependencies
 
 # Include project dependencies
@@ -150,6 +160,8 @@ add_library(${TARGET_CORE_NAME}
     src/bspatch/bspatch.c
 )
 add_library("${PROJECT_NAME}::${TARGET_CORE_ALIAS}" ALIAS ${TARGET_CORE_NAME})
+# Add sanitizers if enabled
+add_sanitizers(${TARGET_CORE_NAME})
 # Specifies name of generated IMPORTED target (set to alias)
 set_target_properties(${TARGET_CORE_NAME} PROPERTIES EXPORT_NAME ${TARGET_CORE_ALIAS})
 # Add to list of targets to export and install
@@ -363,6 +375,10 @@ if(DEPTHAI_OPENCV_SUPPORT)
 
         # Add depthai-core-opencv library and depthai::core::opencv alias
         add_library(${TARGET_OPENCV_NAME} src/opencv/ImgFrame.cpp)
+        # Add sanitizers if enabled
+        add_sanitizers(${TARGET_OPENCV_NAME})
+        
+        # Add target alias
         add_library("${PROJECT_NAME}::${TARGET_OPENCV_ALIAS}" ALIAS ${TARGET_OPENCV_NAME})
         # Specifies name of generated IMPORTED target (set to alias)
         set_target_properties(${TARGET_OPENCV_NAME} PROPERTIES EXPORT_NAME ${TARGET_OPENCV_ALIAS})
@@ -393,15 +409,6 @@ if(DEPTHAI_OPENCV_SUPPORT)
     endif()
 endif()
 
-########################
-# Sanitizers
-########################
-if(DEPTHAI_SANITIZE)
-    set(SANITIZE_ADDRESS ON CACHE BOOL "Enable AddressSanitizer for sanitized targets." FORCE)
-    set(SANITIZE_UNDEFINED ON CACHE BOOL "Enable UndefinedBehaviorSanitizer for sanitized targets." FORCE)
-endif()
-find_package(Sanitizers)
-add_sanitizers(${TARGET_CORE_NAME} ${TARGET_OPENCV_NAME})
 
 ########################
 # Testing infrastructure
