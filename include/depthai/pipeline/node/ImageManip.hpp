@@ -53,11 +53,9 @@ class ImageManip : public Node {
     Output out{*this, "out", Output::Type::MSender, {{DatatypeEnum::ImgFrame, true}}};
 
      /**
-     * Passthrough configuration message with which the manipulation was performed.
-     *
-     * Suitable for when input queue is set to non-blocking behavior.
+     * Output configuration message with which the manipulation was performed.
      */
-    Output passthroughConfig{*this, "passthroughConfig", Output::Type::MSender, {{DatatypeEnum::ImageManipConfig, true}}};
+    Output outConfig{*this, "outConfig", Output::Type::MSender, {{DatatypeEnum::ImageManipConfig, true}}};
     
     /**
      * Passthrough image message on which the manipulation was performed.
