@@ -10,6 +10,8 @@
 // Otherwise (false), the aligned depth is automatically upscaled to 1080p
 static constexpr bool downscaleColor = true;
 
+static constexpr bool convertDispToDepth = true;
+
 int main() {
     using namespace std;
 
@@ -61,6 +63,17 @@ int main() {
 
     std::unordered_map<std::string, cv::Mat> frame;
 
+    float baselineCm = 7.5;  // OAK-D
+    float monoFovDeg = 71.86;
+    int width = right->getResolutionWidth();
+    int maxDisparity = 95;
+    // if (extended) maxDisparity *= 2;
+    // if (subpixel) maxDisparity *= 32;
+    std::vector<std::uint16_t> lutDispToDepth;
+    if (convertDispToDepth) {
+        createDisparityToDepthLut(lutDispToDepth, maxDisparity, width, baselineCm, monoFovDeg);
+    }
+
     while(1) {
         std::unordered_map<std::string, std::shared_ptr<dai::ImgFrame>> latestPacket;
 
@@ -77,6 +90,11 @@ int main() {
             if(latestPacket.find(name) != latestPacket.end()) {
                 if(name == "depth") {
                     frame[name] = latestPacket[name]->getFrame();
+                    if (convertDispToDepth) {
+                        cv::Mat depthFrame = convertDisparityToDepth(frame[name], lutDispToDepth);
+                        // Showing separately here, as the U16 depth map isn't easily viewable when blending
+                        cv::imshow("depthFromDisparity", depthFrame);
+                    }
                     // Optional, extend range 0..95 -> 0..255, for a better visualisation
                     if(1) frame[name].convertTo(frame[name], CV_8UC1, 255. / 95);
                     // Optional, apply false colorization
