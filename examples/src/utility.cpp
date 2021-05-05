@@ -95,3 +95,35 @@ cv::Mat resizeKeepAspectRatio(const cv::Mat &input, const cv::Size &dstSize, con
     return output;
 }
 
+void createDisparityToDepthLut(std::vector<std::uint16_t>& lut, int maxDisparity, int width, float baselineCm, float fovDeg)
+{
+    float baseline = baselineCm / 100;
+
+    float pi = std::acos(-1);
+    float focal = width / (2 * std::tan(fovDeg / 2 / 180 * pi));
+
+    int numDisparities = maxDisparity + 1;
+    lut.resize(numDisparities);
+
+    lut[0] = 0;  // Special case: disparity 0 mapped to depth 0 (instead of infinite)
+    for(int i = 1; i < numDisparities; i++) {
+        int d = std::round(focal * baseline / i * 1000);  // in mm
+        lut[i] = std::min(d, 65535);
+        printf("%d: %d\n", i, lut[i]);
+    }
+}
+
+cv::Mat convertDisparityToDepth(const cv::Mat& disparity, const std::vector<std::uint16_t>& lut)
+{
+    cv::Mat depth(disparity.size(), CV_16UC1);
+    int type = disparity.type();
+
+    for(int y = 0; y < depth.rows; y++) {
+        for(int x = 0; x < depth.cols; x++) {
+            int disp = (type == CV_16UC1) ? disparity.at<uint16_t>(y,x) : disparity.at<uint8_t>(y,x);
+            depth.at<uint16_t>(y,x) = lut[disp];
+        }
+    }
+
+    return depth;
+}
