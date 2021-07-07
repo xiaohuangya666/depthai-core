@@ -3,6 +3,12 @@
  */
 #pragma once
 
+// Configuration definitions
+$<$<BOOL:$<TARGET_PROPERTY:${CONFIG_TARGET_NAME},INTERFACE_COMPILE_DEFINITIONS>>:
+#define $<JOIN:$<TARGET_PROPERTY:${CONFIG_TARGET_NAME},INTERFACE_COMPILE_DEFINITIONS>,
+#define >>
+
+
 // This build supports OpenCV integration?
 #cmakedefine DEPTHAI_HAVE_OPENCV_SUPPORT
 
