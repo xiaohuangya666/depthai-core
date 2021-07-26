@@ -26,7 +26,7 @@ if(WIN32)
 endif()
 
 # Create depthai project
-project(depthai VERSION "2.6.0" LANGUAGES CXX C)
+project(depthai VERSION "2.8.0" LANGUAGES CXX C)
 get_directory_property(has_parent PARENT_DIRECTORY)
 if(has_parent)
     set(DEPTHAI_VERSION ${PROJECT_VERSION} PARENT_SCOPE)
@@ -152,12 +152,14 @@ add_library(${TARGET_CORE_NAME}
     src/pipeline/node/MyProducer.cpp
     src/pipeline/node/VideoEncoder.cpp
     src/pipeline/node/DetectionNetwork.cpp
+    src/pipeline/node/Script.cpp
     src/pipeline/node/SpatialDetectionNetwork.cpp
     src/pipeline/node/SystemLogger.cpp
     src/pipeline/node/SpatialLocationCalculator.cpp
     src/pipeline/node/ObjectTracker.cpp
     src/pipeline/node/IMU.cpp
     src/pipeline/node/EdgeDetector.cpp
+    src/pipeline/node/SPIIn.cpp
     src/pipeline/datatype/Buffer.cpp
     src/pipeline/datatype/ImgFrame.cpp
     src/pipeline/datatype/ImageManipConfig.cpp
@@ -369,8 +371,6 @@ target_compile_definitions(${TARGET_CORE_NAME}
         __PC__
         # Add depthai-device version
         DEPTHAI_DEVICE_VERSION="${DEPTHAI_DEVICE_SIDE_COMMIT}"
-        # Add if using depthai device FWP
-        DEPTHAI_RESOURCES_TAR_XZ
         # Add depthai-bootloader version
         DEPTHAI_BOOTLOADER_VERSION="${DEPTHAI_BOOTLOADER_VERSION}"
 )
