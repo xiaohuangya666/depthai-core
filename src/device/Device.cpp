@@ -282,8 +282,9 @@ bool Device::startPipelineImpl(const Pipeline& pipeline) {
             continue;
         }
 
-        // Create DataInputQueue's
-        inputQueueMap[xlinkIn->getStreamName()] = std::make_shared<DataInputQueue>(connection, xlinkIn->getStreamName());
+        // Create DataInputQueue's (emplace)
+        inputQueueMap.emplace(xlinkIn->getStreamName(), std::make_shared<DataInputQueue>(connection, xlinkIn->getStreamName()));
+
         // set max data size, for more verbosity
         inputQueueMap[xlinkIn->getStreamName()]->setMaxDataSize(xlinkIn->getMaxDataSize());
     }
@@ -295,8 +296,9 @@ bool Device::startPipelineImpl(const Pipeline& pipeline) {
         }
 
         auto streamName = xlinkOut->getStreamName();
-        // Create DataOutputQueue's
-        outputQueueMap[streamName] = std::make_shared<DataOutputQueue>(connection, streamName);
+
+        // Create DataOutputQueue's (emplace)
+        outputQueueMap.emplace(streamName, std::make_shared<DataOutputQueue>(connection, streamName));
 
         // Add callback for events
         callbackIdMap[streamName] = outputQueueMap[streamName]->addCallback([this](std::string queueName, std::shared_ptr<ADatatype>) {
