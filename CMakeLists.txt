@@ -6,19 +6,19 @@ if(NOT WIN32)
     set(HUNTER_CONFIGURATION_TYPES "Release" CACHE STRING "Hunter dependencies list of build configurations")
 endif()
 
-# Read the BUILD_SHARED_LIBS option and select PIC toolchain
-if(BUILD_SHARED_LIBS)
-    if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-        set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_LIST_DIR}/cmake/toolchain/pic.cmake" CACHE STRING "")
-    endif()
-    # Specify exporting all symbols on Windows
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL "")
-endif()
+# Create a custom toolchain to pass certain options to dependencies
+set(gen_toolchain "${CMAKE_CURRENT_BINARY_DIR}/generated/toolchain.cmake")
+configure_file(
+    "${CMAKE_CURRENT_LIST_DIR}/cmake/toolchain/custom.cmake.in"
+    "${gen_toolchain}"
+    @ONLY
+)
+set(CMAKE_TOOLCHAIN_FILE "${gen_toolchain}" CACHE STRING "" FORCE)
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-    URL "https://github.com/cpp-pm/hunter/archive/v0.23.258.tar.gz"
-    SHA1 "062a19ab13ce8dffa9a882b6ce3e43bdabdf75d3"
+    URL "https://github.com/cpp-pm/hunter/archive/v0.23.318.tar.gz"
+    SHA1 "0475be76dbf51385790bbe96be57279e2ff0861d"
     LOCAL # Local config for dependencies
 )
 
@@ -84,6 +84,11 @@ option(DEPTHAI_ENABLE_BACKWARD "Enable stacktrace printing on crash using Backwa
 # Additional function information for 'backward' stacktrace
 if(DEPTHAI_ENABLE_BACKWARD)
     set(CMAKE_ENABLE_EXPORTS ON)
+endif()
+
+# Specify exporting all symbols on Windows
+if(WIN32 AND BUILD_SHARED_LIBS)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL "")
 endif()
 
 ### Constants
@@ -464,7 +469,13 @@ if(DEPTHAI_SANITIZE)
     set(SANITIZE_ADDRESS ON CACHE BOOL "Enable AddressSanitizer for sanitized targets." FORCE)
     set(SANITIZE_UNDEFINED ON CACHE BOOL "Enable UndefinedBehaviorSanitizer for sanitized targets." FORCE)
     find_package(Sanitizers)
-    add_sanitizers(${TARGET_CORE_NAME} ${TARGET_OPENCV_NAME})
+    add_sanitizers(${TARGET_CORE_NAME})
+    if(DEPTHAI_HAVE_OPENCV_SUPPORT)
+        add_sanitizers(${TARGET_OPENCV_NAME})
+    endif()
+    if(DEPTHAI_XLINK_LOCAL)
+        add_sanitizers(XLink)
+    endif()
 endif()
 
 ########################
