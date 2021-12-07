@@ -17,8 +17,8 @@ set(CMAKE_TOOLCHAIN_FILE "${gen_toolchain}" CACHE STRING "" FORCE)
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-    URL "https://github.com/cpp-pm/hunter/archive/v0.23.318.tar.gz"
-    SHA1 "0475be76dbf51385790bbe96be57279e2ff0861d"
+    URL "https://github.com/luxonis/hunter/archive/72a64d6fd2ce05a04d980c9c0b60ed1de0ab3234.tar.gz"
+    SHA1 "77fe363b16e9d247d3c0e11d74612ae8c34e8603"
     LOCAL # Local config for dependencies
 )
 
