@@ -1,3 +1,9 @@
+message(STATUS "================================================================")
+message(STATUS "This branch (oak-d-pro) is deprecated! Please switch for now to:")
+message(STATUS "             oak-d-pro_develop")
+message(STATUS "================================================================")
+message(FATAL_ERROR "")
+
 cmake_minimum_required(VERSION 3.4) # For Hunter
 
 # MSVC variable isn't available before 'project' call
