@@ -17,8 +17,8 @@ set(CMAKE_TOOLCHAIN_FILE "${gen_toolchain}" CACHE STRING "" FORCE)
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-    URL "https://github.com/cpp-pm/hunter/archive/v0.23.258.tar.gz"
-    SHA1 "062a19ab13ce8dffa9a882b6ce3e43bdabdf75d3"
+    URL "https://github.com/cpp-pm/hunter/archive/v0.23.320.tar.gz"
+    SHA1 "9b4e732afd22f40482c11ad6342f7d336634226f"
     LOCAL # Local config for dependencies
 )
 
@@ -28,7 +28,7 @@ if(WIN32)
 endif()
 
 # Create depthai project
-project(depthai VERSION "2.13.3" LANGUAGES CXX C)
+project(depthai VERSION "2.14.0" LANGUAGES CXX C)
 get_directory_property(has_parent PARENT_DIRECTORY)
 if(has_parent)
     set(DEPTHAI_VERSION ${PROJECT_VERSION} PARENT_SCOPE)
@@ -78,6 +78,8 @@ option(DEPTHAI_INSTALL   "Enable install target for depthai-core targets" ON)
 
 # Debug option
 set(DEPTHAI_XLINK_LOCAL "" CACHE STRING "Path to local XLink source to use instead of Hunter")
+set(DEPTHAI_SHARED_LOCAL "" CACHE STRING "Path to local depthai-shared source to use instead of submodule")
+set(DEPTHAI_BOOTLOADER_SHARED_LOCAL "" CACHE STRING "Path to local depthai-bootloader-shared source to use instead of submodule")
 
 # Enable backward stack printing on crash
 if(ANDROID)
@@ -94,6 +96,17 @@ endif()
 if(WIN32 AND BUILD_SHARED_LIBS)
     # Specify exporting all symbols on Windows
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL "")
+endif()
+
+# Force Colored output when using Ninja
+# Global option - affects all targets
+option(FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)" OFF)
+if(FORCE_COLORED_OUTPUT)
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+       add_compile_options(-fdiagnostics-color=always)
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+       add_compile_options(-fcolor-diagnostics)
+    endif()
 endif()
 
 ### Constants
@@ -170,7 +183,6 @@ add_library(${TARGET_CORE_NAME}
     src/pipeline/node/StereoDepth.cpp
     src/pipeline/node/NeuralNetwork.cpp
     src/pipeline/node/ImageManip.cpp
-    src/pipeline/node/MyProducer.cpp
     src/pipeline/node/VideoEncoder.cpp
     src/pipeline/node/DetectionNetwork.cpp
     src/pipeline/node/Script.cpp
@@ -381,6 +393,7 @@ target_link_libraries(${TARGET_CORE_NAME}
     PUBLIC
         nlohmann_json::nlohmann_json
         XLink
+        libnop
     PRIVATE
         Threads::Threads
         BZip2::bz2
@@ -400,6 +413,15 @@ target_compile_definitions(${TARGET_CORE_NAME}
         # Add depthai-bootloader version
         DEPTHAI_BOOTLOADER_VERSION="${DEPTHAI_BOOTLOADER_VERSION}"
 )
+# Check if MSVC and add a conforming preprocessor flag (libnop serialization macros)
+if (MSVC)
+    if(MSVC_VERSION LESS 1925)
+        target_compile_options(${TARGET_CORE_NAME} PUBLIC "/experimental:preprocessor")
+    else()
+        target_compile_options(${TARGET_CORE_NAME} PUBLIC "/Zc:preprocessor")
+    endif()
+endif()
+
 
 # Add Backward dependency if enabled (On by default)
 if(DEPTHAI_ENABLE_BACKWARD)
