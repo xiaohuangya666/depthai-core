@@ -15,24 +15,6 @@ mutex mtx;
 vector<tuple<shared_ptr<dai::Device>, int>> devices;
 
 int main() {
-    // Create pipeline
-    dai::Pipeline pipeline;
-
-    // Define source and output
-    auto camRgb = pipeline.create<dai::node::ColorCamera>();
-    auto xoutRgb = pipeline.create<dai::node::XLinkOut>();
-
-    xoutRgb->setStreamName("rgb");
-
-    // Properties
-    camRgb->setPreviewSize(300, 300);
-    camRgb->setBoardSocket(dai::CameraBoardSocket::RGB);
-    camRgb->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
-    camRgb->setInterleaved(false);
-    camRgb->setColorOrder(dai::ColorCameraProperties::ColorOrder::RGB);
-
-    // Linking
-    camRgb->preview.link(xoutRgb->input);
 
     vector<thread> threads;
     int deviceCounter = 0;
@@ -47,7 +29,26 @@ int main() {
     } while(availableDevices.size() <= 1 && steady_clock::now() - t1 <= 3s);
 
     for(const auto& dev : availableDevices){
-        threads.push_back(thread([dev, pipeline, deviceCounter](){
+        threads.push_back(thread([dev, deviceCounter](){
+
+            // Create pipeline
+            dai::Pipeline pipeline;
+
+            // Define source and output
+            auto camRgb = pipeline.create<dai::node::ColorCamera>();
+            auto xoutRgb = pipeline.create<dai::node::XLinkOut>();
+
+            xoutRgb->setStreamName("rgb");
+
+            // Properties
+            camRgb->setPreviewSize(300, 300);
+            camRgb->setBoardSocket(dai::CameraBoardSocket::RGB);
+            camRgb->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
+            camRgb->setInterleaved(false);
+            camRgb->setColorOrder(dai::ColorCameraProperties::ColorOrder::RGB);
+
+            // Linking
+            camRgb->preview.link(xoutRgb->input);
 
             // Optional delay between device connection
             // if(deviceCounter) this_thread::sleep_for(1s);
